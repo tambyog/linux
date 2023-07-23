@@ -1,0 +1,62 @@
+Q: what is use of NIC bonding? Or What is Bonding 
+A: A network bond is a method to combine or aggregate physical and virtual network interfaces to provide a logical interface with higher throughput or redundancy.
+
+Q: Diffrent type of Bonding Modes
+A: 1. 0 - balance-rr
+   2. 1 - active-backup
+   3. 2 - balance-xor
+   4. 3 - broadcast
+   5. 4 - 802.3ad
+   6. 5 - balance-tlb 
+   7. 6 - balance-alb
+
+Q: Configuring a network bond by using nmcli
+
+	1. Create a bond interface:
+		
+	# nmcli connection add type bond con-name bond0 ifname bond0 bond.options "mode=active-backup,miimon=1000"
+	
+	2. Display the network interfaces, and note names of interfaces you plan to add to the bond:
+	# nmcli device status
+	
+	# nmcli connection add type ethernet slave-type bond con-name bond0-port1 ifname enp0s3 master bond0
+	
+	# nmcli connection add type ethernet slave-type bond con-name bond0-port2 ifname enp0s8 master bond0
+
+	3. Assign interfaces to the bond:
+	# nmcli connection add type ethernet slave-type bond con-name bond0-port1 ifname enp0s3 master bond0
+	# nmcli connection add type ethernet slave-type bond con-name bond0-port2 ifname enp0s8 master bond0
+	
+	4. To set a static IPv4 address, network mask, default gateway, and DNS server to the bond0 connection,
+	# nmcli connection modify bond0 ipv4.addresses '192.168.0.119/24' ipv4.gateway '192.168.0.1' ipv4.dns '192.168.0.1' ipv4.dns-search 'example.com' ipv4.method manual
+	
+	5. Activate the connection:
+	# nmcli connection up bond0
+	
+	6. Verify that the ports are connected, and the CONNECTION column displays the port’s connection
+	# nmcli device
+	
+	* When you activate any port of the connection, NetworkManager also activates the bond, but not the other ports of it. You can configure that Red Hat Enterprise Linux enables all ports automatically when the bond is enabled:
+	
+	Enable the connection.autoconnect-slaves parameter of the bond’s connection:
+	
+	# nmcli connection modify bond0 connection.autoconnect-slaves 1
+
+
+Q: How to Verifying Network Configuration Bonding for Redundancy
+A:  
+
+	1. Ping the destination IP from the bond interface.
+	# ping -I bond0 google.com
+	
+	2. View which interface is in active mode
+	# cat /sys/class/net/bond0/bonding/active_slave
+	
+	3. Set the active port interface down:
+	# ip link set enp1s0 down
+	
+	4. Check if the backup interface is up
+	# cat /sys/class/net/bond0/bonding/active_slave 
+	
+	5. Check if you can still ping the destination IP from the bond interface
+	# ping -I bond0 google.com
